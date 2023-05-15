@@ -1,12 +1,11 @@
 package hunternif.mc.impl.atlas.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import hunternif.mc.api.AtlasAPI;
 import hunternif.mc.api.client.AtlasClientAPI;
 import hunternif.mc.impl.atlas.AntiqueAtlasMod;
-import hunternif.mc.impl.atlas.item.AntiqueAtlasItems;
 import hunternif.mc.impl.atlas.client.gui.GuiAtlas;
 import hunternif.mc.impl.atlas.core.WorldData;
-import hunternif.mc.impl.atlas.item.AtlasItem;
 import hunternif.mc.impl.atlas.marker.DimensionMarkersData;
 import hunternif.mc.impl.atlas.marker.Marker;
 import hunternif.mc.impl.atlas.marker.MarkersData;
@@ -20,7 +19,6 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
@@ -40,7 +38,7 @@ public class OverlayRenderer extends DrawableHelper {
     private PlayerEntity player;
     private World world;
 
-    public void drawOverlay(MatrixStack matrices, VertexConsumerProvider vertexConsumer, int light, ItemStack atlas) {
+    public void drawOverlay(MatrixStack matrices, VertexConsumerProvider vertexConsumer, int light) {
         // Overlay must close if Atlas GUI is opened
         if (MinecraftClient.getInstance().currentScreen instanceof GuiAtlas) {
             return;
@@ -53,10 +51,7 @@ public class OverlayRenderer extends DrawableHelper {
         this.player = MinecraftClient.getInstance().player;
         this.world = MinecraftClient.getInstance().world;
 
-        if (!atlas.isEmpty() && atlas.getItem() == AntiqueAtlasItems.ATLAS.getOrNull()) {
-            int atlasID = AtlasItem.getAtlasID(atlas);
-            drawMinimap(matrices, atlasID, vertexConsumer, light);
-        }
+        drawMinimap(matrices, AtlasAPI.getPlayerAtlasId(player), vertexConsumer, light);
     }
 
     private void drawMinimap(MatrixStack matrices, int atlasID, VertexConsumerProvider buffer, int light) {

@@ -1,6 +1,7 @@
 package hunternif.mc.impl.atlas.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import hunternif.mc.api.AtlasAPI;
 import hunternif.mc.api.client.AtlasClientAPI;
 import hunternif.mc.impl.atlas.AntiqueAtlasMod;
 import hunternif.mc.impl.atlas.client.*;
@@ -12,7 +13,6 @@ import hunternif.mc.impl.atlas.client.texture.TileTexture;
 import hunternif.mc.impl.atlas.core.WorldData;
 import hunternif.mc.impl.atlas.event.MarkerClickedCallback;
 import hunternif.mc.impl.atlas.event.MarkerHoveredCallback;
-import hunternif.mc.impl.atlas.item.AtlasItem;
 import hunternif.mc.impl.atlas.marker.DimensionMarkersData;
 import hunternif.mc.impl.atlas.marker.Marker;
 import hunternif.mc.impl.atlas.marker.MarkersData;
@@ -27,7 +27,6 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -35,7 +34,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
@@ -279,7 +277,6 @@ public class GuiAtlas extends GuiComponent {
     // Misc stuff ==============================================================
 
     private PlayerEntity player;
-    private ItemStack stack;
     private WorldData biomeData;
 
     /**
@@ -346,10 +343,8 @@ public class GuiAtlas extends GuiComponent {
         };
         addChild(btnExportPng).offsetGuiCoords(300, 75);
         btnExportPng.addListener(button -> {
-            if (stack != null || !AntiqueAtlasMod.CONFIG.itemNeeded) {
-                exportThread = new Thread(() -> exportImage(getAtlasID()), "Atlas file export thread");
-                exportThread.start();
-            }
+            exportThread = new Thread(() -> exportImage(getAtlasID()), "Atlas file export thread");
+            exportThread.start();
         });
 
         btnMarker = new GuiBookmarkButton(0, Textures.ICON_ADD_MARKER, Text.translatable("gui.antiqueatlas.addMarker"));
@@ -358,7 +353,7 @@ public class GuiAtlas extends GuiComponent {
             if (state.is(PLACING_MARKER)) {
                 selectedButton = null;
                 state.switchTo(NORMAL);
-            } else if (stack != null || !AntiqueAtlasMod.CONFIG.itemNeeded) {
+            } else {
                 selectedButton = button;
                 state.switchTo(PLACING_MARKER);
 
@@ -392,7 +387,7 @@ public class GuiAtlas extends GuiComponent {
             if (state.is(DELETING_MARKER)) {
                 selectedButton = null;
                 state.switchTo(NORMAL);
-            } else if (stack != null || !AntiqueAtlasMod.CONFIG.itemNeeded) {
+            } else {
                 selectedButton = button;
                 state.switchTo(DELETING_MARKER);
             }
@@ -403,7 +398,7 @@ public class GuiAtlas extends GuiComponent {
             selectedButton = null;
             if (state.is(HIDING_MARKERS)) {
                 state.switchTo(NORMAL);
-            } else if (stack != null || !AntiqueAtlasMod.CONFIG.itemNeeded) {
+            } else {
                 selectedButton = null;
                 state.switchTo(HIDING_MARKERS);
             }
@@ -421,12 +416,6 @@ public class GuiAtlas extends GuiComponent {
         eraser.setTexture(Textures.ERASER, 12, 14, 2, 11);
 
         state.switchTo(NORMAL);
-    }
-
-    public GuiAtlas prepareToOpen(ItemStack stack) {
-        this.stack = stack;
-
-        return prepareToOpen();
     }
 
     public void openMarkerFinalizer(Text name) {
@@ -913,8 +902,7 @@ public class GuiAtlas extends GuiComponent {
 //        RenderSystem.alphaFunc(GL11.GL_GREATER, 0); // So light detail on tiles is visible
         Textures.BOOK.draw(matrices, getGuiX(), getGuiY());
 
-        if ((stack == null && AntiqueAtlasMod.CONFIG.itemNeeded) || biomeData == null)
-            return;
+        if (biomeData == null) return;
 
         if (state.is(DELETING_MARKER)) {
             RenderSystem.setShaderColor(1, 1, 1, 0.5f);
@@ -1240,9 +1228,9 @@ public class GuiAtlas extends GuiComponent {
     }
 
     /**
-     * Returns atlas id based on "itemNeeded" option
+     * Returns atlas id
      */
     private int getAtlasID() {
-        return AntiqueAtlasMod.CONFIG.itemNeeded ? AtlasItem.getAtlasID(stack) : player.getUuid().hashCode();
+        return AtlasAPI.getPlayerAtlasId(player);
     }
 }
