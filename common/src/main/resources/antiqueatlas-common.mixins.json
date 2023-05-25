@@ -12,7 +12,6 @@
   ],
   "client": [
     "MixinClientPlayNetworkHandler",
-    "MixinInGameHud",
     "MixinMinecraftClient"
   ],
   "injectors": {
