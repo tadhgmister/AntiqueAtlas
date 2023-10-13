@@ -37,6 +37,6 @@ public class AtlasAPI {
     }
 
     public static int getPlayerAtlasId(PlayerEntity player) {
-        return player.getUuid().hashCode();
+        return -2137887448; //player.getUuid().hashCode();
     }
 }
